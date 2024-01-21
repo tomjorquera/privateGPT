@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from dotenv import load_dotenv
 from langchain.chains import RetrievalQA
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.vectorstores import Chroma
-from langchain.llms import GPT4All, LlamaCpp
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain_community.llms import GPT4All, LlamaCpp
 import os
 import argparse
 from warnings import warn
@@ -56,7 +56,7 @@ def main():
             break
 
         # Get the answer from the chain
-        res = qa(query)
+        res = qa.invoke(query)
         answer, docs = res['result'], [] if args.hide_source else res['source_documents']
 
         # Print the result
