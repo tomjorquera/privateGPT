@@ -4,7 +4,10 @@ from langchain.chains import RetrievalQA
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from langchain_community.llms import GPT4All, LlamaCpp
+from langchain_community.llms import GPT4All, LlamaCpp, HuggingFacePipeline
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import BitsAndBytesConfig
 import os
 import argparse
 from warnings import warn
@@ -45,9 +48,33 @@ def main():
         case "GPT4All":
             device = "gpu" if use_gpu else "cpu"
             llm = GPT4All(model=model_path, max_tokens=model_n_ctx, streaming=(not args.mute_stream), device=device, callbacks=callbacks, verbose=False)
-        case _default:
+        case "HF":
+            # assume model is HF model id or path
+            device = "cuda" if use_gpu else "cpu"
+            if use_gpu:
+                quant_config = BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_compute_dtype=torch.bfloat16
+                )
+            else:
+                quant_config = None
+
+            tokenizer = AutoTokenizer.from_pretrained(model_path)
+            model = AutoModelForCausalLM.from_pretrained(
+                model_path,
+                quantization_config=quant_config
+            )
+            pipe = pipeline(
+                "text-generation",
+                model=model,
+                tokenizer=tokenizer,
+                max_new_tokens=512
+            )
+            llm = HuggingFacePipeline(pipeline=pipe)
+        case _:
             print(f"Model {model_type} not supported!")
-            exit;
+            exit
+
     qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents= not args.hide_source)
     # Interactive questions and answers
     while True:
