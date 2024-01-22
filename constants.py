@@ -9,7 +9,7 @@ PERSIST_DIRECTORY = os.environ.get('PERSIST_DIRECTORY')
 
 # Define the Chroma settings
 CHROMA_SETTINGS = Settings(
-        chroma_db_impl='duckdb+parquet',
         persist_directory=PERSIST_DIRECTORY,
+        is_persistent=True,
         anonymized_telemetry=False
 )
