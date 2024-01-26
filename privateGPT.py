@@ -44,7 +44,7 @@ def main():
             llm = LlamaCpp(model_path=model_path, n_ctx=model_n_ctx, n_gpu_layers=n_gpu_layers, callbacks=callbacks, verbose=False)
         case "GPT4All":
             device = "gpu" if use_gpu else "cpu"
-            llm = GPT4All(model=model_path, max_tokens=model_n_ctx, device=device, callbacks=callbacks, verbose=False)
+            llm = GPT4All(model=model_path, max_tokens=model_n_ctx, streaming=(not args.mute_stream), device=device, callbacks=callbacks, verbose=False)
         case _default:
             print(f"Model {model_type} not supported!")
             exit;
